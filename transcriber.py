@@ -1,6 +1,5 @@
 import requests
 import colorama
-import time
 import os
 import datetime
 import sounddevice as sd
@@ -23,25 +22,27 @@ filename = save_path
 headers = {'authorization': "YOUR API KEY"}
 
 print()
-input_option = input('''Audio file input (1)
+print(Fore.YELLOW + "<<< ASSEMBLY-AI TRANSCRIBER >>>")
+print()
+input_option = input(Fore.CYAN + '''Audio file input (1)
 Microphone input (2)
+
 Enter option: ''')
 
 print()
 if input_option == "1":
-    filename = str(input("Enter file name: "))
-
+    filename = str(input(Fore.YELLOW + "Enter file name: "))
 
 def audio_recording():
-    print(Fore.YELLOW + "(●) Recording".center(100))
-
+    print(Fore.YELLOW + "(●) Recording")
     frequency = 44100
-    duration = 10
+    duration = 5
     record_audio = sd.rec(int(duration * frequency), samplerate=frequency, channels=2)
     sd.wait()
     write(save_path, frequency, record_audio)
-
-    print(Fore.GREEN + "Recoding audio completed".center(100))
+    print(Back.GREEN + Fore.BLACK + " Recoding audio completed ")
+    print()
+    print(Fore.GREEN + "AssemblyAI processing transcrption...")
 
 def upload(filename):
     def read_file(filename, chunk_size=5242880):
@@ -51,11 +52,9 @@ def upload(filename):
                 if not data:
                     break
                 yield data
-
     upload_response = requests.post(upload_endpoint,
                             headers=headers,
                             data=read_file(filename))
-
     audio_url = upload_response.json()["upload_url"]
     return audio_url
 
@@ -78,9 +77,6 @@ def transcribe_output(audio_url):
             return result, None
         elif result["status"] == "error":
             return result, result["error"]
-        
-        # print("Waiting for 10 seconds...")
-        # time.sleep(10)    
 
 def save_transcript(audio_url):
     result, error = transcribe_output(audio_url)
@@ -90,14 +86,13 @@ def save_transcript(audio_url):
         with open(text_file, "w") as f:
             f.write(result["text"])
         output = result["text"]
-        print(output)
         print()
-        print("Transcription saved")
-
+        print("[Transcript] " + output)
+        print()
+        print(Back.GREEN + Fore.BLACK + " Transcription saved ")
     elif error:
         print()
-        print("Transcription failed", error)
-
+        print(Back.RED + Fore.BLACK + " Transcription failed ", error)
 
 if input_option == "2":
     audio_recording()
